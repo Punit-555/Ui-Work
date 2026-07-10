@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Projects &amp; Recipients — Display Options</title>
+<meta name="description" content="Interactive UI/UX options for PreAmp's Projects List and Recipients pages." />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<title>Projects List — Display Options</title>
+<meta name="description" content="Three interaction models for the PreAmp Projects List: Table Pro, Album Cards, and Compact Rows." />
+
+<div class="shell">
+  <div class="sidebar">
+    <span class="mark">PREAMP</span>
+    <span class="dot active"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </div>
+
+  <div class="main">
+    <div class="content">
+
+      <div class="pagepicker">
+        <span class="pagepicker-label">Viewing</span>
+        <button class="pagepicker-tab active" id="pickProjects">Projects List</button>
+        <button class="pagepicker-tab" id="pickRecipients">Recipients</button>
+      </div>
+
+      <div id="page-projects" class="page">
+
+      <div class="pagehead">
+        <h1>Projects</h1>
+        <div class="tabs">
+          <button class="active">View All</button>
+          <button>Audio</button>
+          <button>Video</button>
+          <button>Sharespace</button>
+          <button>Newsletter</button>
+        </div>
+      </div>
+      <p class="sub">Please choose the project or sharespace you want to work on from the list below.</p>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <button class="btn">Manage Columns
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16M12 4v16M20 4v16"/></svg>
+          </button>
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input placeholder="Search…" />
+          </div>
+          <span class="chip"><span class="flag"></span>watermark</span>
+        </div>
+
+        <div class="toolbar-right">
+          <button class="btn">Export
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+          </button>
+          <button class="btn">Refresh
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M5.6 15A8 8 0 0019 9.5M18.4 9A8 8 0 005 14.5"/></svg>
+          </button>
+          <button class="btn primary">Create New</button>
+
+          <div class="switcher" id="switcher">
+            <button class="switcher-btn" id="switcherBtn">
+              <span class="icon-badge" id="switcherIcon"></span>
+              <span id="switcherLabel">Table Pro</span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="switcher-panel" id="switcherPanel"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="viewslot" id="viewslot"></div>
+
+      <div class="foot-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5"/></svg>
+        <span>All three renderers read the same project records — switching Display doesn't refetch or resort, it only changes how the row is drawn. The right-hand gutter stays fixed in every mode; only Table Pro can scroll horizontally, and only inside its own bordered frame.</span>
+      </div>
+
+      </div><!-- /page-projects -->
+
+      <div id="page-recipients" class="page" style="display:none">
+
+        <div class="edithead">
+          <p class="edithead-eyebrow">Edit Audio Project</p>
+          <div class="edithead-meta">
+            <span><b>ID</b> 5854</span>
+            <span><b>Artist</b> John mcArthy ft. Samuel Jackyson, Peter</span>
+            <span><b>Title</b> Playdate ~ The Holy World</span>
+            <span><b>Expiry</b> 27 Nov 2026</span>
+          </div>
+          <div class="edittabs">
+            <span class="edittab">Project Information</span>
+            <span class="edittab">File Management</span>
+            <span class="edittab active">Recipients</span>
+            <span class="edittab">Confirmation</span>
+          </div>
+        </div>
+
+        <div class="sectiontitle-row">
+          <h2 class="sectiontitle">Recipients management</h2>
+          <div class="switcher" id="switcherA">
+            <button class="switcher-btn" id="switcherBtnA">
+              <span class="icon-badge" id="switcherIconA"></span>
+              <span id="switcherLabelA">All at Once</span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="switcher-panel" id="switcherPanelA"></div>
+          </div>
+        </div>
+
+        <div class="addbar" id="addBarRoot"></div>
+
+        <div class="toolbar" style="margin-top:26px">
+          <div class="toolbar-left">
+            <div class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input placeholder="Search recipients or lists…" id="rSearch" />
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <div class="switcher" id="switcherF">
+              <button class="switcher-btn" id="switcherBtnF">
+                <span class="icon-badge" id="switcherIconF"></span>
+                <span id="switcherLabelF">Inline Fields</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="switcher-panel" id="switcherPanelF"></div>
+            </div>
+            <div class="switcher" id="switcherR">
+              <button class="switcher-btn" id="switcherBtnR">
+                <span class="icon-badge" id="switcherIconR"></span>
+                <span id="switcherLabelR">Grouped Sections</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="switcher-panel" id="switcherPanelR"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="viewslot" id="viewslotR"></div>
+
+        <div class="foot-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5"/></svg>
+          <span>Groups (contact groups and radio lists, unified — no separate tabs) and Individuals are kept as two distinct, independently-selectable sections in both layouts. Expanding a group's members toggles in place — it never re-renders the table. Selecting any row surfaces a contextual bulk-action bar instead of the always-on "set date for all" row from the current build.</span>
+        </div>
+
+      </div><!-- /page-recipients -->
+
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
