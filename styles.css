@@ -1,14 +1,4 @@
-/* ============================================================
-     TOKENS
-     Color   — brand accent #0094FF (existing), a blue-leaning ink/neutral
-               instead of pure grey, and four distinct project-type hues
-               kept apart from the semantic status hues (success/warn/danger/muted).
-     Type    — Lato (already the product's typeface) at a disciplined
-               scale; tabular numerals wherever digits stack in a column.
-     Layout  — dark sidebar sliver + white content plane, a fixed right
-               gutter that never depends on how many columns are visible,
-               and one view-slot that crossfades between three renderers.
-     ============================================================ */
+
   :root{
     --accent:      #0094ff;
     --accent-ink:  #006fc4;
@@ -98,12 +88,41 @@
   /* ---------------------------------------------------------------- shell */
   .shell{ display:flex; min-height:100vh; }
   .sidebar{
-    width:64px; flex-shrink:0; background:var(--shell); border-right:1px solid var(--shell-line);
-    display:flex; flex-direction:column; align-items:center; gap:22px; padding:20px 0;
+    width:232px; flex-shrink:0; background:var(--shell); border-right:1px solid var(--shell-line);
+    display:flex; flex-direction:column; padding:20px 14px 18px;
   }
-  .sidebar .mark{ font-weight:900; color:#fff; font-size:11px; letter-spacing:2px; writing-mode:vertical-rl; }
-  .sidebar .dot{ width:8px; height:8px; border-radius:50%; background:#333a4d; }
-  .sidebar .dot.active{ background:var(--accent); box-shadow:0 0 0 4px rgba(0,148,255,.18); }
+  .sidebar-head{ display:flex; align-items:center; justify-content:space-between; padding:0 4px 20px; }
+  .sidebar-logo{ display:flex; align-items:baseline; gap:2px; }
+  .sidebar-logo span{ font-weight:900; color:#fff; font-size:15px; letter-spacing:3px; }
+  .sidebar-logo span.accent{ color:var(--accent); }
+  .sidebar-collapse{
+    width:26px; height:26px; border-radius:7px; border:1px solid var(--shell-line); background:transparent;
+    color:#7c8296; display:flex; align-items:center; justify-content:center; cursor:default; flex-shrink:0;
+  }
+  .sidebar-collapse svg{ width:13px; height:13px; }
+
+  .sidebar-user{
+    background:#1b1e29; border:1px solid var(--shell-line); border-radius:11px; padding:12px 13px; margin-bottom:22px;
+  }
+  .sidebar-user .name{ color:#eef1f8; font-size:13px; font-weight:700; margin-bottom:3px; }
+  .sidebar-user .logout{ color:#7c8296; font-size:11.5px; display:flex; align-items:center; gap:5px; }
+  .sidebar-user .logout svg{ width:11px; height:11px; }
+
+  .sidebar-scroll{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:18px; }
+  .sidebar-group-label{
+    font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#565c70;
+    padding:0 10px 8px;
+  }
+  .sidebar-group{ display:flex; flex-direction:column; gap:2px; }
+  .sidebar-item{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:9px; cursor:default;
+    color:#a3a9bc; font-size:13px; font-weight:600; transition:background .14s ease, color .14s ease;
+  }
+  .sidebar-item svg{ width:17px; height:17px; flex-shrink:0; color:#7c8296; transition:color .14s ease; }
+  .sidebar-item:hover{ background:#1c2030; color:#eef1f8; }
+  .sidebar-item:hover svg{ color:#eef1f8; }
+  .sidebar-item.active{ background:var(--accent); color:#fff; }
+  .sidebar-item.active svg{ color:#fff; }
 
   .main{ flex:1; min-width:0; display:flex; justify-content:center; }
   .content{
@@ -262,6 +281,29 @@
   .gtip b{ display:block; margin-bottom:5px; font-size:12.5px; }
   .gtip .dim{ color:#aab0c4; }
 
+  /* ---------------------------------------------------------------- global row-action menu
+     Same singleton-in-<body> approach as .gtip above, for the same reason — the "..." trigger
+     lives inside a <tr>/.crow/.card, which fights an in-place absolute dropdown for stacking. */
+  .rowmenu{
+    position:fixed; z-index:1001; min-width:168px; background:var(--surface-raised); border:1px solid var(--line);
+    border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; opacity:0; transform:translateY(-6px) scale(.98);
+    pointer-events:none; transition:opacity .15s var(--ease), transform .15s var(--ease);
+  }
+  .rowmenu.show{ opacity:1; transform:none; pointer-events:auto; }
+  .rowmenu-item{
+    display:flex; align-items:center; gap:10px; width:100%; border:none; background:transparent; cursor:pointer;
+    padding:9px 11px; border-radius:8px; font:inherit; font-size:13px; font-weight:600; color:var(--ink-soft);
+    text-align:left; transition:background .12s var(--ease), color .12s var(--ease);
+  }
+  .rowmenu-item svg{ width:15px; height:15px; flex-shrink:0; color:var(--ink-mute); }
+  .rowmenu-item:hover{ background:var(--surface-sunk); color:var(--ink); }
+  .rowmenu-item:hover svg{ color:var(--ink); }
+  .rowmenu-item.danger{ color:var(--bad); }
+  .rowmenu-item.danger svg{ color:var(--bad); }
+  .rowmenu-item.danger:hover{ background:var(--bad-tint); color:var(--bad); }
+  .rowmenu-item.danger:hover svg{ color:var(--bad); }
+  .rowmenu-sep{ height:1px; background:var(--line-soft); margin:5px 4px; }
+
   /* ================================================================
      VIEW 1 — TABLE PRO
      ================================================================ */
@@ -379,6 +421,78 @@
   /* ---------------------------------------------------------------- footnote / empty */
   .foot-note{ margin-top:22px; padding:14px 18px; border:1px dashed var(--line); border-radius:12px; color:var(--ink-mute); font-size:12.5px; display:flex; gap:10px; align-items:flex-start; }
   .foot-note svg{ width:15px; height:15px; flex-shrink:0; margin-top:1px; color:var(--accent); }
+
+  /* ================================================================
+     VIEW 4 — CASTER STYLE
+     A flatter, denser reference table modeled on the Caster (Play MPE)
+     Releases view — thin rules instead of pills, a left-edge row menu,
+     and the reference code promoted to a highlighted chip rather than
+     plain text (same underlying `iref` field as View 1's plain-text
+     Internal Ref column — this is purely a different read on it).
+     ================================================================ */
+  .caster-wrap{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-card); overflow:hidden; box-shadow:var(--shadow-sm); }
+  .caster-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:16px 18px; border-bottom:1px solid var(--line); }
+  .caster-search{ position:relative; flex-shrink:0; }
+  .caster-search svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--ink-mute); pointer-events:none; }
+  .caster-search input{ height:36px; width:230px; border-radius:9px; border:1px solid var(--line); background:var(--surface-sunk); padding:0 12px 0 34px; font:inherit; font-size:12.5px; color:var(--ink); transition:border-color .15s var(--ease), background .15s var(--ease); }
+  .caster-search input:focus{ outline:none; border-color:var(--accent); background:var(--surface); }
+  .caster-filters{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .caster-filterlabel{ font-size:12px; color:var(--ink-mute); font-weight:700; margin-right:2px; }
+  .caster-filterchip{
+    height:34px; padding:0 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface);
+    font:inherit; font-size:12px; font-weight:600; color:var(--ink-soft); cursor:pointer; transition:all .15s var(--ease);
+  }
+  .caster-filterchip:hover{ border-color:var(--accent); color:var(--accent); }
+  select.caster-filterchip{
+    appearance:none; -webkit-appearance:none; padding-right:28px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238890a0' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat; background-position:right 9px center; background-size:10px;
+  }
+
+  .caster-tblwrap{ overflow-x:auto; }
+  table.caster-table{ width:100%; border-collapse:collapse; min-width:1040px; }
+  table.caster-table thead th{
+    text-align:left; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-mute);
+    padding:12px 14px; border-bottom:1px solid var(--line); white-space:nowrap; background:var(--surface-sunk);
+  }
+  table.caster-table tbody tr{ border-bottom:1px solid var(--line-soft); transition:background .12s var(--ease); }
+  table.caster-table tbody tr:last-child{ border-bottom:none; }
+  table.caster-table tbody tr:hover{ background:var(--surface-sunk); }
+  table.caster-table td{ padding:11px 14px; font-size:13px; color:var(--ink); vertical-align:middle; }
+  .caster-menu-cell{ width:36px; }
+  .caster-dots{
+    width:26px; height:26px; border-radius:7px; border:none; background:transparent; color:var(--ink-mute);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.55; transition:.14s;
+  }
+  .caster-dots:hover{ opacity:1; background:var(--surface); color:var(--ink); }
+  .caster-dots svg{ width:15px; height:15px; }
+
+  .caster-status{ font-size:12.5px; font-weight:700; text-transform:capitalize; display:inline-flex; align-items:center; gap:6px; }
+  .caster-status::before{ content:''; width:6px; height:6px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .caster-status.draft{ color:var(--ink-mute); }
+  .caster-status.pending, .caster-status.processing{ color:var(--warn); }
+  .caster-status.published{ color:var(--ok); }
+  .caster-status.expired, .caster-status.failed{ color:var(--bad); }
+
+  .caster-ref-badge{
+    display:inline-flex; align-items:center; font-size:11.5px; font-weight:700; color:var(--accent-ink);
+    background:var(--accent-tint); border-radius:7px; padding:3px 9px; font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .caster-dim{ color:var(--ink-mute); }
+
+  .caster-foot{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; flex-wrap:wrap; gap:10px; }
+  .caster-pageNums{ display:flex; gap:6px; }
+  .caster-pagebtn{
+    width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft);
+    font:inherit; font-weight:700; font-size:12.5px; cursor:pointer; transition:all .14s var(--ease);
+  }
+  .caster-pagebtn:hover{ border-color:var(--accent); color:var(--accent); }
+  .caster-pagebtn.active{ background:var(--ink); border-color:var(--ink); color:#fff; cursor:default; }
+  .caster-perpage{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-mute); font-weight:600; }
+  .caster-perpage select{
+    height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); padding:0 8px;
+    font:inherit; font-size:12.5px; color:var(--ink);
+  }
 
   /* ================================================================
      RECIPIENTS PAGE

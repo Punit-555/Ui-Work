@@ -13,7 +13,7 @@
   });
 })();
 
-/* ============ next inline <script> block ============ */
+/* ==================== next script block ==================== */
 
 (function(){
   const ICONS = {
@@ -86,6 +86,56 @@
     });
   }
   window.addEventListener('scroll', hideTip, true);
+
+  /* ---------------- global row-action menu (Edit / Copy / Delete) ---------------- */
+  const EDIT_MI   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>';
+  const COPY_MI   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+  const DELETE_MI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/></svg>';
+
+  const rowmenu = document.createElement('div');
+  rowmenu.className = 'rowmenu';
+  rowmenu.innerHTML = `
+    <button class="rowmenu-item" data-action="edit">${EDIT_MI}Edit</button>
+    <button class="rowmenu-item" data-action="copy">${COPY_MI}Copy</button>
+    <div class="rowmenu-sep"></div>
+    <button class="rowmenu-item danger" data-action="delete">${DELETE_MI}Delete</button>
+  `;
+  document.body.appendChild(rowmenu);
+  let rowmenuFor = null;
+
+  function positionMenu(el){
+    const r = el.getBoundingClientRect();
+    const mw = rowmenu.offsetWidth, mh = rowmenu.offsetHeight;
+    let top  = r.bottom + 6;
+    let left = r.right - mw;
+    if (left < 12) left = 12;
+    if (top + mh > window.innerHeight - 12) top = r.top - mh - 6;
+    rowmenu.style.left = left + 'px';
+    rowmenu.style.top  = top + 'px';
+  }
+  function openRowMenu(el){
+    rowmenuFor = el;
+    rowmenu.classList.add('show');
+    positionMenu(el);
+  }
+  function closeRowMenu(){
+    rowmenuFor = null;
+    rowmenu.classList.remove('show');
+  }
+  function bindRowMenus(root){
+    root.querySelectorAll('.dots, .caster-dots').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        if (rowmenuFor === btn) { closeRowMenu(); return; }
+        openRowMenu(btn);
+      });
+    });
+  }
+  rowmenu.querySelectorAll('.rowmenu-item').forEach(item=>{
+    item.addEventListener('click', () => closeRowMenu());
+  });
+  document.addEventListener('click', closeRowMenu);
+  window.addEventListener('scroll', closeRowMenu, true);
 
   /* ---------------- generative "album art" cover tiles (no external images — CSP blocks remote fetches) ---------------- */
   function hashSeed(id){
@@ -282,6 +332,136 @@
     return `<div class="view"><div class="compact">${rows}</div></div>`;
   }
 
+  /* ---------------- View 4: Caster Style ----------------
+     Same DATA, same iref field as View 1 — the difference is entirely
+     presentational: a flat dense table with the reference promoted to
+     a highlighted chip, modeled on Caster's Releases view. */
+  const CASTER_STATUSES = ['DRAFT','PENDING','PROCESSING','PUBLISHED','EXPIRED','FAILED'];
+  const casterState = { q:'', status:'', page:1, perPage:15 };
+
+  function refBadge(p){
+    return p.iref
+      ? `<span class="caster-ref-badge">${p.iref}</span>`
+      : `<span class="caster-dim">—</span>`;
+  }
+
+  function casterStatusText(status){
+    return `<span class="caster-status ${status.toLowerCase()}">${status.charAt(0)+status.slice(1).toLowerCase()}</span>`;
+  }
+
+  function casterFiltered(){
+    return DATA.filter(p=>{
+      if (casterState.status && p.status !== casterState.status) return false;
+      if (casterState.q){
+        const hay = `${p.title} ${fullArtist(p)} ${p.iref||''} ${p.owner||''}`.toLowerCase();
+        if (!hay.includes(casterState.q.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderCasterRows(){
+    const filtered = casterFiltered();
+    if (filtered.length === 0){
+      return `<tr><td colspan="10" style="text-align:center;padding:44px 20px;color:var(--ink-mute)">No releases match your filters</td></tr>`;
+    }
+    const totalPages = Math.max(1, Math.ceil(filtered.length / casterState.perPage));
+    if (casterState.page > totalPages) casterState.page = totalPages;
+    const start = (casterState.page - 1) * casterState.perPage;
+    return filtered.slice(start, start + casterState.perPage).map(p => `
+      <tr>
+        <td class="caster-menu-cell"><button class="caster-dots"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></td>
+        <td class="num">${p.id}</td>
+        <td>${casterStatusText(p.status)}</td>
+        <td class="num">${dfShort(p.avail)}</td>
+        <td class="num">${p.status==='PUBLISHED' ? dfShort(p.upd) : '—'}</td>
+        <td><strong>${p.title}</strong></td>
+        <td>${fullArtist(p)}</td>
+        <td>${p.labels.join(', ')||'—'}</td>
+        <td>${p.owner||'—'}</td>
+        <td>${refBadge(p)}</td>
+      </tr>`).join('');
+  }
+
+  function renderCasterFoot(){
+    const filtered = casterFiltered();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / casterState.perPage));
+    const pageBtns = Array.from({length: totalPages}, (_,i)=>i+1)
+      .map(n => `<button class="caster-pagebtn ${n===casterState.page?'active':''}" data-caster-page="${n}">${n}</button>`)
+      .join('');
+    return `
+      <div class="caster-foot">
+        <div class="caster-pageNums">${pageBtns}</div>
+        <div class="caster-perpage">
+          <span>Display per page</span>
+          <select id="casterPerPage">
+            ${[15,25,50].map(n => `<option value="${n}" ${n===casterState.perPage?'selected':''}>${n}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+  }
+
+  function repaintCasterBody(){
+    const rowsEl = document.getElementById('casterRows');
+    const footEl = document.getElementById('casterFootWrap');
+    if (!rowsEl || !footEl) return;
+    rowsEl.innerHTML = renderCasterRows();
+    footEl.innerHTML = renderCasterFoot();
+    wireCasterFoot();
+    bindRowMenus(rowsEl);
+  }
+
+  function wireCasterFoot(){
+    document.querySelectorAll('[data-caster-page]').forEach(btn => {
+      btn.addEventListener('click', () => { casterState.page = parseInt(btn.dataset.casterPage, 10); repaintCasterBody(); });
+    });
+    const pp = document.getElementById('casterPerPage');
+    if (pp) pp.addEventListener('change', () => { casterState.perPage = parseInt(pp.value, 10); casterState.page = 1; repaintCasterBody(); });
+  }
+
+  function wireCaster(){
+    const s = document.getElementById('casterSearch');
+    if (s) s.addEventListener('input', () => { casterState.q = s.value; casterState.page = 1; repaintCasterBody(); });
+    const sf = document.getElementById('casterStatusFilter');
+    if (sf) sf.addEventListener('change', () => { casterState.status = sf.value; casterState.page = 1; repaintCasterBody(); });
+    wireCasterFoot();
+  }
+
+  function renderCasterTable(){
+    return `
+    <div class="view">
+      <div class="caster-wrap">
+        <div class="caster-toolbar">
+          <div class="caster-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input id="casterSearch" placeholder="Search" value="${escAttr(casterState.q)}" />
+          </div>
+          <div class="caster-filters">
+            <span class="caster-filterlabel">Filter by:</span>
+            <select id="casterStatusFilter" class="caster-filterchip">
+              <option value="">Status: All</option>
+              ${CASTER_STATUSES.map(s => `<option value="${s}" ${s===casterState.status?'selected':''}>${s.charAt(0)+s.slice(1).toLowerCase()}</option>`).join('')}
+            </select>
+            <button class="caster-filterchip" type="button">Date</button>
+            <button class="caster-filterchip" type="button">Owner</button>
+            <button class="caster-filterchip" type="button">Label</button>
+            <button class="caster-filterchip" type="button">List / Sub-List</button>
+          </div>
+        </div>
+        <div class="caster-tblwrap">
+          <table class="caster-table">
+            <thead><tr>
+              <th></th><th>ID</th><th>Status</th><th>Available Date</th><th>Last Published</th>
+              <th>Title</th><th>Artist</th><th>Label(s)</th><th>Owner</th><th>Reference</th>
+            </tr></thead>
+            <tbody id="casterRows">${renderCasterRows()}</tbody>
+          </table>
+        </div>
+        <div id="casterFootWrap">${renderCasterFoot()}</div>
+      </div>
+    </div>`;
+  }
+
   /* ---------------- switcher wiring ---------------- */
   const MODES = [
     { id:'table',   label:'Table Pro',    icon:ICONS.audio, render:renderTable,
@@ -290,6 +470,8 @@
       desc:'Cover-tile grid built for browsing a catalogue at a glance; secondary metadata sits behind an “i” toggle per card.' },
     { id:'compact', label:'Compact Rows', icon:ICONS.share, render:renderCompact,
       desc:'One line per project — title, status, date. Tap a row to expand its full metadata. Never scrolls horizontally, at any width.' },
+    { id:'caster',  label:'Caster Ref View', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 10v10"/></svg>', render:renderCasterTable,
+      desc:'Flat, dense reference table modeled on Caster — same data as Table Pro, but the reference code reads as a highlighted chip and rows paginate instead of scrolling.' },
   ];
 
   const viewslot = document.getElementById('viewslot');
@@ -346,12 +528,14 @@
       });
     });
     bindTooltips(viewslot);
+    bindRowMenus(viewslot);
+    if (current === 'caster') wireCaster();
   }
 
   setMode('table');
 })();
 
-/* ============ next inline <script> block ============ */
+/* ==================== next script block ==================== */
 
 (function(){
   /* ---------------- icons ---------------- */
